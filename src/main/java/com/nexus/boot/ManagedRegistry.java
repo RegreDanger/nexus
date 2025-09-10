@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.nexus.core.annotations.Managed;
+import com.nexus.core.annotations.WiringConfig;
 import com.nexus.exceptions.DependencyInstantiationException;
 
 import io.github.classgraph.ClassGraph;
@@ -18,8 +19,14 @@ public final class ManagedRegistry implements Registry<DependencyRegistry> {
 
     @Override
     public DependencyRegistry registry(Object... args) {
+        if (args.length != 1) {
+            throw new IllegalArgumentException("Expected one argument: DependencyRegistry instance");
+        }
+        if(!(args[0] instanceof DependencyRegistry di)) {
+            throw new IllegalArgumentException("The first arg must be instance of " + DependencyRegistry.class.getName() + " class");
+        }
         
-        List<Class<?>> classes = new ClassGraph().enableClassInfo().scan().getClassesWithAnnotation("WiringConfig").loadClasses();
+        List<Class<?>> classes = new ClassGraph().enableClassInfo().scan().getClassesWithAnnotation(WiringConfig.class).loadClasses();
         Map<Class<?>, Object> manageds = new HashMap<>();
 
         classes.forEach(cls -> 
@@ -41,8 +48,7 @@ public final class ManagedRegistry implements Registry<DependencyRegistry> {
                 }
             })
         );
-
-        return null;
+        return di.registry(manageds);
     }
 
     private void hasParameters(Method m) {

@@ -22,7 +22,7 @@ public final class DependencyRegistry implements Registry<DependencyRegistry> {
             throw new IllegalArgumentException("Expected one argument: Map instance");
         }
         if(!(args[0] instanceof Map<?, ?> map)) {
-            throw new IllegalArgumentException("The first arg must be instace of " + Map.class.getName() + "class");
+            throw new IllegalArgumentException("The first arg must be instance of " + Map.class.getName() + " class");
         }
                 
         for (Map.Entry<?, ?> entry : map.entrySet()) {

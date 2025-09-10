@@ -2,6 +2,8 @@ package com.nexus.boot;
 
 import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,7 +24,7 @@ public final class EventHandlersRegistry implements Registry<Void> {
             throw new IllegalArgumentException("Expected one argument: DependencyRegistry instance");
         }
         if(!(args[0] instanceof DependencyRegistry di)) {
-            throw new IllegalArgumentException("The first arg must be instace of " + DependencyRegistry.class.getName() + "class");
+            throw new IllegalArgumentException("The first arg must be instance of " + DependencyRegistry.class.getName() + " class");
         }
         initRegistry(di, new ClassGraph().enableClassInfo().scan());
         return null;
@@ -33,12 +35,21 @@ public final class EventHandlersRegistry implements Registry<Void> {
         a.forEach(cls -> {
             EventHandler<?> handler = (EventHandler<?>) DependencyResolver.resolve(di, cls);
             
-            Class<?> eventType = (Class<?>) ((ParameterizedType) cls
-                        .getGenericInterfaces()[0])
-                        .getActualTypeArguments()[0];
+            Class<?> eventType = extractEventType(cls);
             addHandler(eventType, handler);
         });
     }
+
+    private Class<?> extractEventType(Class<?> handlerClass) {
+    return Arrays.stream(handlerClass.getGenericInterfaces())
+        .filter(ParameterizedType.class::isInstance)
+        .map(ParameterizedType.class::cast)
+        .filter(pt -> pt.getRawType().equals(EventHandler.class))
+        .findFirst()
+        .map(pt -> (Class<?>) pt.getActualTypeArguments()[0])
+        .orElseThrow(() -> new IllegalStateException(
+            "Cannot extract event type from handler: " + handlerClass.getName()));
+}
 
     private void addHandler(Class<?> eventType, EventHandler<?> handler) {
         handlersMap.computeIfAbsent(eventType, k -> new ArrayList<>()).add(handler);
@@ -46,7 +57,8 @@ public final class EventHandlersRegistry implements Registry<Void> {
 
     @SuppressWarnings("unchecked")
     public <E extends DomainEvent> List<EventHandler<E>> getHandlers(Class<E> eventType) {
-        return (List<EventHandler<E>>) (List<?>) handlersMap.get(eventType);
+        List<EventHandler<E>> handlers = (List<EventHandler<E>>) (List<?>) handlersMap.get(eventType);
+        return handlers != null ? handlers : Collections.emptyList();
     }
 
 }

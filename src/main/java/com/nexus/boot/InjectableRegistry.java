@@ -20,18 +20,17 @@ public final class InjectableRegistry implements Registry<DependencyRegistry> {
             throw new IllegalArgumentException("Expected one argument: DependencyRegistry instance");
         }
         if(!(args[0] instanceof DependencyRegistry di)) {
-            throw new IllegalArgumentException("The first arg must be instace of " + DependencyRegistry.class.getName() + "class");
+            throw new IllegalArgumentException("The first arg must be instance of " + DependencyRegistry.class.getName() + " class");
         }
         List<Class<?>> sorted = sortByLevel(new ClassGraph().enableClassInfo().scan());
         return registerAll(sorted, di);
     }
 
     private List<Class<?>> sortByLevel(ScanResult sr) {
-        List<Class<?>> injectables = sr.getClassesWithAnnotation("Injectable").loadClasses();
-        injectables.sort(Comparator.comparingInt(cls -> {
-            Injectable annotation = cls.getAnnotation(Injectable.class);
-            return annotation != null ? annotation.level() : 0;
-        }));
+        List<Class<?>> injectables = sr.getClassesWithAnnotation(Injectable.class).loadClasses();
+        injectables.sort(Comparator.comparingInt(cls -> 
+            cls.getAnnotation(Injectable.class).level()
+        ));
         return injectables;
     }
 
@@ -43,7 +42,7 @@ public final class InjectableRegistry implements Registry<DependencyRegistry> {
             int level = injectable.getAnnotation(Injectable.class).level();
             if (level != currentLevel) {
                 if (!collecting.isEmpty()) {
-                    di.registry(collecting);
+                    di = di.registry(collecting);
                     collecting.clear();
                 }
                 currentLevel = level;
@@ -52,7 +51,7 @@ public final class InjectableRegistry implements Registry<DependencyRegistry> {
         }
 
         if (!collecting.isEmpty()) {
-            di.registry(collecting);
+            di = di.registry(collecting);
         }
 
         return di;

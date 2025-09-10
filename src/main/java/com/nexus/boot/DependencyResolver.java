@@ -6,7 +6,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.nexus.core.annotations.Inject;
-import com.nexus.core.annotations.Injectable;
 import com.nexus.exceptions.DependencyInstantiationException;
 
 public final class DependencyResolver {
@@ -17,6 +16,9 @@ public final class DependencyResolver {
         
         List<Constructor<?>> annotatedConstructors = getAnnotatedConstructors(cls);
         hasMultipleAnnotatedConstructors(annotatedConstructors);
+        if (annotatedConstructors.isEmpty()) {
+            throw new IllegalStateException("No constructor annotated with @Inject found in class: " + cls.getName());
+        }
 
         Constructor<?> ctor = annotatedConstructors.get(0);
         Class<?>[] deps = ctor.getParameterTypes();
@@ -48,7 +50,7 @@ public final class DependencyResolver {
 
     private static void hasMultipleAnnotatedConstructors(List<Constructor<?>> annotatedConstructors) {
         if(annotatedConstructors.size() > 1) {
-            throw new IllegalStateException("Multiple constructors annotated with: " + Injectable.class.getName());
+            throw new IllegalStateException("Multiple constructors annotated with: " + Inject.class.getName());
         }
     }
 

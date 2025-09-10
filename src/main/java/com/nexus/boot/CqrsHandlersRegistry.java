@@ -25,7 +25,7 @@ public final class CqrsHandlersRegistry implements Registry<Void> {
             throw new IllegalArgumentException("Expected one argument: DependencyRegistry instance");
         }
         if(!(args[0] instanceof DependencyRegistry di)) {
-            throw new IllegalArgumentException("The first arg must be instace of " + DependencyRegistry.class.getName() + "class");
+            throw new IllegalArgumentException("The first arg must be instance of " + DependencyRegistry.class.getName() + " class");
         }
         initRegistry(di, new ClassGraph().enableClassInfo().scan());
         fillHandlers();
