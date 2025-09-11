@@ -10,8 +10,8 @@ import java.util.Map;
 
 import com.nexus.core.event.DomainEvent;
 import com.nexus.core.event.EventHandler;
+import com.nexus.util.ClassValidator;
 
-import io.github.classgraph.ClassGraph;
 import io.github.classgraph.ScanResult;
 
 public final class EventHandlersRegistry implements Registry<Void> {
@@ -20,13 +20,10 @@ public final class EventHandlersRegistry implements Registry<Void> {
 
     @Override
     public Void registry(Object... args) {
-        if (args.length != 1) {
-            throw new IllegalArgumentException("Expected one argument: DependencyRegistry instance");
-        }
-        if(!(args[0] instanceof DependencyRegistry di)) {
-            throw new IllegalArgumentException("The first arg must be instance of " + DependencyRegistry.class.getName() + " class");
-        }
-        initRegistry(di, new ClassGraph().enableClassInfo().scan());
+        ClassValidator.validateArgs(args, new Class<?>[] {DependencyRegistry.class, PackagesRegistry.class});
+        DependencyRegistry di = ClassValidator.cast(args[0], DependencyRegistry.class);
+        PackagesRegistry pr = ClassValidator.cast(args[1], PackagesRegistry.class);
+        initRegistry(di, pr.getScanResult());
         return null;
     }
     
@@ -41,15 +38,15 @@ public final class EventHandlersRegistry implements Registry<Void> {
     }
 
     private Class<?> extractEventType(Class<?> handlerClass) {
-    return Arrays.stream(handlerClass.getGenericInterfaces())
-        .filter(ParameterizedType.class::isInstance)
-        .map(ParameterizedType.class::cast)
-        .filter(pt -> pt.getRawType().equals(EventHandler.class))
-        .findFirst()
-        .map(pt -> (Class<?>) pt.getActualTypeArguments()[0])
-        .orElseThrow(() -> new IllegalStateException(
-            "Cannot extract event type from handler: " + handlerClass.getName()));
-}
+        return Arrays.stream(handlerClass.getGenericInterfaces())
+            .filter(ParameterizedType.class::isInstance)
+            .map(ParameterizedType.class::cast)
+            .filter(pt -> pt.getRawType().equals(EventHandler.class))
+            .findFirst()
+            .map(pt -> (Class<?>) pt.getActualTypeArguments()[0])
+            .orElseThrow(() -> new IllegalStateException(
+                "Cannot extract event type from handler: " + handlerClass.getName()));
+    }
 
     private void addHandler(Class<?> eventType, EventHandler<?> handler) {
         handlersMap.computeIfAbsent(eventType, k -> new ArrayList<>()).add(handler);

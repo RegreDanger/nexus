@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.nexus.exceptions.DependencyNotFoundException;
+import com.nexus.util.ClassValidator;
 
 public final class DependencyRegistry implements Registry<DependencyRegistry> {
     private Map<Class<?>, Object> instances = Map.of();
@@ -18,13 +19,9 @@ public final class DependencyRegistry implements Registry<DependencyRegistry> {
 
     @Override
     public DependencyRegistry registry(Object... args) {
-        if (args.length != 1) {
-            throw new IllegalArgumentException("Expected one argument: Map instance");
-        }
-        if(!(args[0] instanceof Map<?, ?> map)) {
-            throw new IllegalArgumentException("The first arg must be instance of " + Map.class.getName() + " class");
-        }
-                
+        ClassValidator.validateArgs(args, new Class<?>[] {Map.class});
+        Map<?, ?> map = ClassValidator.cast(args[0], Map.class);
+
         for (Map.Entry<?, ?> entry : map.entrySet()) {
             if (!(entry.getKey() instanceof Class<?>)) {
                 throw new IllegalArgumentException("All map keys must be Class<?> instances");

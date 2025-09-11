@@ -10,8 +10,7 @@ import java.util.Map;
 import com.nexus.core.annotations.Managed;
 import com.nexus.core.annotations.WiringConfig;
 import com.nexus.exceptions.DependencyInstantiationException;
-
-import io.github.classgraph.ClassGraph;
+import com.nexus.util.ClassValidator;
 
 public final class ManagedRegistry implements Registry<DependencyRegistry> {
 
@@ -19,14 +18,11 @@ public final class ManagedRegistry implements Registry<DependencyRegistry> {
 
     @Override
     public DependencyRegistry registry(Object... args) {
-        if (args.length != 1) {
-            throw new IllegalArgumentException("Expected one argument: DependencyRegistry instance");
-        }
-        if(!(args[0] instanceof DependencyRegistry di)) {
-            throw new IllegalArgumentException("The first arg must be instance of " + DependencyRegistry.class.getName() + " class");
-        }
+        ClassValidator.validateArgs(args, new Class<?>[] {DependencyRegistry.class, PackagesRegistry.class});
+        DependencyRegistry di = ClassValidator.cast(args[0], DependencyRegistry.class);
+        PackagesRegistry pr = ClassValidator.cast(args[1], PackagesRegistry.class);
         
-        List<Class<?>> classes = new ClassGraph().enableClassInfo().scan().getClassesWithAnnotation(WiringConfig.class).loadClasses();
+        List<Class<?>> classes = pr.getScanResult().getClassesWithAnnotation(WiringConfig.class).loadClasses();
         Map<Class<?>, Object> manageds = new HashMap<>();
 
         classes.forEach(cls -> 
@@ -66,5 +62,5 @@ public final class ManagedRegistry implements Registry<DependencyRegistry> {
             );
         }
     }
-    
+
 }

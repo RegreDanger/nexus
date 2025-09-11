@@ -7,8 +7,8 @@ import java.util.Map;
 import com.nexus.core.cqrs.Command;
 import com.nexus.core.cqrs.Handler;
 import com.nexus.core.cqrs.Query;
+import com.nexus.util.ClassValidator;
 
-import io.github.classgraph.ClassGraph;
 import io.github.classgraph.ScanResult;
 
 public final class CqrsHandlersRegistry implements Registry<Void> {
@@ -21,13 +21,10 @@ public final class CqrsHandlersRegistry implements Registry<Void> {
 
     @Override
     public Void registry(Object... args) {
-        if (args.length != 1) {
-            throw new IllegalArgumentException("Expected one argument: DependencyRegistry instance");
-        }
-        if(!(args[0] instanceof DependencyRegistry di)) {
-            throw new IllegalArgumentException("The first arg must be instance of " + DependencyRegistry.class.getName() + " class");
-        }
-        initRegistry(di, new ClassGraph().enableClassInfo().scan());
+        ClassValidator.validateArgs(args, new Class<?>[] {DependencyRegistry.class, PackagesRegistry.class});
+        DependencyRegistry di = ClassValidator.cast(args[0], DependencyRegistry.class);
+        PackagesRegistry pr = ClassValidator.cast(args[1], PackagesRegistry.class);
+        initRegistry(di, pr.getScanResult());
         fillHandlers();
         return null;
     }
