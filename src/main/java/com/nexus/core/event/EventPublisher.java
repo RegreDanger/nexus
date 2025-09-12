@@ -1,5 +1,5 @@
 package com.nexus.core.event;
 
 public interface EventPublisher {
-    public void publish(DomainEvent event);
+    public <T extends DomainEvent> void publish(Class<T> eventType, T event);
 }
