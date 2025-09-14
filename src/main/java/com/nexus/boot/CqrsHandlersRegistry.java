@@ -21,7 +21,7 @@ public final class CqrsHandlersRegistry implements Registry<Void> {
 
     @Override
     public Void registry(Object... args) {
-        ClassValidator.validateArgs(args, new Class<?>[] {DependencyRegistry.class, ScanResult.class});
+        ClassValidator.validateArgumentTypes(args, new Class<?>[] {DependencyRegistry.class, ScanResult.class});
         DependencyRegistry di = ClassValidator.cast(args[0], DependencyRegistry.class);
         ScanResult sr = ClassValidator.cast(args[1], ScanResult.class);
         initRegistry(di, sr);
@@ -33,8 +33,8 @@ public final class CqrsHandlersRegistry implements Registry<Void> {
         List<Class<?>> cmdClasses = sr.getClassesImplementing(Command.class).loadClasses();
         List<Class<?>> queryClasses = sr.getClassesImplementing(Query.class).loadClasses();
 
-        cmdClasses.forEach(cls -> commands.put(cls, (Command <?, ?>) DependencyResolver.resolve(di, cls)));
-        queryClasses.forEach(cls -> queries.put(cls, (Query<?, ?>) DependencyResolver.resolve(di, cls)));
+        cmdClasses.forEach(clazz -> commands.put(clazz, (Command <?, ?>) DependencyResolver.resolve(di, clazz)));
+        queryClasses.forEach(clazz -> queries.put(clazz, (Query<?, ?>) DependencyResolver.resolve(di, clazz)));
 
     }
 
@@ -49,9 +49,7 @@ public final class CqrsHandlersRegistry implements Registry<Void> {
 
     public <C, R, T extends Handler<C, R>> T getCQRSHandler(Class<T> handlerClass) {
         T cmd = handlerClass.cast(handlers.get(handlerClass));
-        if(cmd == null) {
-            throw new NullPointerException("Handler not found for class: " + handlerClass.getName());
-        }
+        if(cmd == null) throw new NullPointerException("Handler not found for class: " + handlerClass.getName());
         return cmd;
     }
 

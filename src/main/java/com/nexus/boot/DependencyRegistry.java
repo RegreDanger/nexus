@@ -12,20 +12,16 @@ public final class DependencyRegistry implements Registry<DependencyRegistry> {
     protected DependencyRegistry() {}
 
     private DependencyRegistry(Map<Class<?>, Object> init) {
-        if (init != null && !init.isEmpty()) {
-            this.instances = Map.copyOf(init);
-        }
+        if (init != null && !init.isEmpty()) this.instances = Map.copyOf(init);
     }
 
     @Override
     public DependencyRegistry registry(Object... args) {
-        ClassValidator.validateArgs(args, new Class<?>[] {Map.class});
+        ClassValidator.validateArgumentTypes(args, new Class<?>[] {Map.class});
         Map<?, ?> map = ClassValidator.cast(args[0], Map.class);
 
         for (Map.Entry<?, ?> entry : map.entrySet()) {
-            if (!(entry.getKey() instanceof Class<?>)) {
-                throw new IllegalArgumentException("All map keys must be Class<?> instances");
-            }
+            if (!(entry.getKey() instanceof Class<?>)) throw new IllegalArgumentException("All map keys must be Class<?> instances");
         }
         @SuppressWarnings("unchecked")
         Map<Class<?>, Object> typedMap = (Map<Class<?>, Object>) map;
@@ -39,12 +35,9 @@ public final class DependencyRegistry implements Registry<DependencyRegistry> {
     }
 
     public <T> T get(Class<T> clazz) {
-        for (Map.Entry<Class<?>, Object> entry : instances.entrySet()) {
-            if (clazz.isAssignableFrom(entry.getKey())) {
-                return clazz.cast(entry.getValue());
-            }
-        }
-        throw new DependencyNotFoundException("Dependency null: " + clazz);
+        Object instance = instances.get(clazz);
+        if (instance == null) throw new DependencyNotFoundException("Dependency null: " + clazz);
+        return clazz.cast(instance);
     }
 
     public Map<Class<?>, Object> getInstances() {

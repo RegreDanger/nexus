@@ -16,7 +16,7 @@ public final class InjectableRegistry implements Registry<DependencyRegistry> {
 
     @Override
     public DependencyRegistry registry(Object... args) {
-        ClassValidator.validateArgs(args, new Class<?>[] {DependencyRegistry.class, ScanResult.class});
+        ClassValidator.validateArgumentTypes(args, new Class<?>[] {DependencyRegistry.class, ScanResult.class});
         DependencyRegistry di = ClassValidator.cast(args[0], DependencyRegistry.class);
         ScanResult sr = ClassValidator.cast(args[1], ScanResult.class);
         List<Class<?>> sorted = sortByLevel(sr);
@@ -25,8 +25,8 @@ public final class InjectableRegistry implements Registry<DependencyRegistry> {
 
     private List<Class<?>> sortByLevel(ScanResult sr) {
         List<Class<?>> injectables = sr.getClassesWithAnnotation(Injectable.class).loadClasses();
-        injectables.sort(Comparator.comparingInt(cls -> 
-            cls.getAnnotation(Injectable.class).level()
+        injectables.sort(Comparator.comparingInt(clazz -> 
+            clazz.getAnnotation(Injectable.class).level()
         ));
         return injectables;
     }
@@ -47,9 +47,7 @@ public final class InjectableRegistry implements Registry<DependencyRegistry> {
             collecting.put(injectable, DependencyResolver.resolve(di, injectable));
         }
 
-        if (!collecting.isEmpty()) {
-            di = di.registry(collecting);
-        }
+        if (!collecting.isEmpty()) di = di.registry(collecting);
 
         return di;
 

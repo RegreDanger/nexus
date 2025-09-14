@@ -14,66 +14,66 @@ class ClassValidatorTest {
     void validateArgsWithCorrectTypesShouldPass() {
         Object[] args = { "hello", 123 };
         Class<?>[] types = { String.class, Integer.class };
-        assertDoesNotThrow(() -> ClassValidator.validateArgs(args, types));
+        assertDoesNotThrow(() -> ClassValidator.validateArgumentTypes(args, types));
     }
 
     @Test
     void validateArgsWithNullArgsShouldThrow() {
         Class<?>[] types = { String.class };
-        assertThrows(NullPointerException.class, () -> ClassValidator.validateArgs(null, types));
+        assertThrows(NullPointerException.class, () -> ClassValidator.validateArgumentTypes(null, types));
     }
 
     @Test
     void validateArgsWithNullTypesShouldThrow() {
         Object[] args = { "test" };
-        assertThrows(NullPointerException.class, () -> ClassValidator.validateArgs(args, (Class<Object>[]) null));
+        assertThrows(NullPointerException.class, () -> ClassValidator.validateArgumentTypes(args, (Class<Object>[]) null));
     }
 
     @Test
     void validateArgsWithWrongLengthShouldThrow() {
         Object[] args = { "hello" };
         Class<?>[] types = { String.class, Integer.class };
-        assertThrows(IllegalArgumentException.class, () -> ClassValidator.validateArgs(args, types));
+        assertThrows(IllegalArgumentException.class, () -> ClassValidator.validateArgumentTypes(args, types));
     }
 
     @Test
     void validateArgsWithWrongTypeShouldThrow() {
         Object[] args = { "hello", "oops" };
         Class<?>[] types = { String.class, Integer.class };
-        assertThrows(IllegalArgumentException.class, () -> ClassValidator.validateArgs(args, types));
+        assertThrows(IllegalArgumentException.class, () -> ClassValidator.validateArgumentTypes(args, types));
     }
 
     @Test
     void validateArgsSingleTypeWithCorrectInstancesShouldPass() {
         Object[] args = { "a", "b" };
-        assertDoesNotThrow(() -> ClassValidator.validateArgs(args, String.class));
+        assertDoesNotThrow(() -> ClassValidator.validateArgumentTypes(args, String.class));
     }
 
     @Test
     void validateArgsSingleTypeWithWrongInstanceShouldThrow() {
         Object[] args = { "a", 123 };
-        assertThrows(IllegalArgumentException.class, () -> ClassValidator.validateArgs(args, String.class));
+        assertThrows(IllegalArgumentException.class, () -> ClassValidator.validateArgumentTypes(args, String.class));
     }
 
     @Test
     void validateArgsWithContentAndValidPredicateShouldPass() {
         Object[] args = { "one", "two" };
         Predicate<String> predicate = s -> s.length() >= 3;
-        assertDoesNotThrow(() -> ClassValidator.validateArgsWithContent(args, String.class, predicate));
+        assertDoesNotThrow(() -> ClassValidator.validateArgumentsWithPredicate(args, String.class, predicate));
     }
 
     @Test
     void validateArgsWithContentAndInvalidPredicateShouldThrow() {
         Object[] args = { "ok", "no" };
         Predicate<String> predicate = s -> s.length() >= 3;
-        assertThrows(IllegalArgumentException.class, () -> ClassValidator.validateArgsWithContent(args, String.class, predicate));
+        assertThrows(IllegalArgumentException.class, () -> ClassValidator.validateArgumentsWithPredicate(args, String.class, predicate));
     }
 
     @Test
     void validateArgsWithContentAndWrongTypeShouldThrow() {
         Object[] args = { "hello", 123 };
         Predicate<String> predicate = s -> !s.isEmpty();
-        assertThrows(IllegalArgumentException.class, () -> ClassValidator.validateArgsWithContent(args, String.class, predicate));
+        assertThrows(IllegalArgumentException.class, () -> ClassValidator.validateArgumentsWithPredicate(args, String.class, predicate));
     }
 
     @Test
@@ -110,6 +110,6 @@ class ClassValidatorTest {
 
     @Test
     void getNameShouldReturnClassName() {
-        assertEquals("java.lang.String.class", ClassValidator.getName(String.class));
+        assertEquals("String", ClassValidator.getReadableName(String.class));
     }
 }

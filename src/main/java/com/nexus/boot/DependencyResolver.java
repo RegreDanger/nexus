@@ -12,13 +12,11 @@ public final class DependencyResolver {
 
     private DependencyResolver() {}
 
-    public static Object resolve(DependencyRegistry di, Class<?> cls) {
+    public static Object resolve(DependencyRegistry di, Class<?> clazz) {
         
-        List<Constructor<?>> annotatedConstructors = getAnnotatedConstructors(cls);
+        List<Constructor<?>> annotatedConstructors = getAnnotatedConstructors(clazz);
         hasMultipleAnnotatedConstructors(annotatedConstructors);
-        if (annotatedConstructors.isEmpty()) {
-            throw new IllegalStateException("No constructor annotated with @Inject found in class: " + cls.getName());
-        }
+        if (annotatedConstructors.isEmpty()) throw new IllegalStateException("No constructor annotated with @Inject found in class: " + clazz.getName());
 
         Constructor<?> ctor = annotatedConstructors.get(0);
         Class<?>[] deps = ctor.getParameterTypes();
@@ -28,7 +26,7 @@ public final class DependencyResolver {
             depInstances[i] = di.get(deps[i]);
         }
         try {
-            return cls.cast(ctor.newInstance(depInstances));
+            return clazz.cast(ctor.newInstance(depInstances));
         } catch (InvocationTargetException e) {
             throw new DependencyInstantiationException(
                 "Constructor threw an exception: " + ctor, e.getCause()
@@ -44,14 +42,12 @@ public final class DependencyResolver {
         }
     }
 
-    private static List<Constructor<?>> getAnnotatedConstructors(Class<?> cls) {
-        return Arrays.stream(cls.getConstructors()).filter(con -> con.isAnnotationPresent(Inject.class)).toList();
+    private static List<Constructor<?>> getAnnotatedConstructors(Class<?> clazz) {
+        return Arrays.stream(clazz.getConstructors()).filter(con -> con.isAnnotationPresent(Inject.class)).toList();
     }
 
     private static void hasMultipleAnnotatedConstructors(List<Constructor<?>> annotatedConstructors) {
-        if(annotatedConstructors.size() > 1) {
-            throw new IllegalStateException("Multiple constructors annotated with: " + Inject.class.getName());
-        }
+        if(annotatedConstructors.size() > 1) throw new IllegalStateException("Multiple constructors annotated with: " + Inject.class.getName());
     }
 
 }

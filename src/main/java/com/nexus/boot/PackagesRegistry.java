@@ -11,7 +11,7 @@ public class PackagesRegistry implements Registry<ScanResult>{
 
     @Override
     public ScanResult registry(Object... args) {
-        ClassValidator.validateArgsWithContent(args, String.class, s -> !s.isEmpty());
+        ClassValidator.validateArgumentsWithPredicate(args, String.class, s -> !s.isEmpty());
         String[] pkgs = ClassValidator.castArray(args, new String[] {});
         return new ClassGraph().acceptPackages(pkgs).enableAllInfo().scan();
     }

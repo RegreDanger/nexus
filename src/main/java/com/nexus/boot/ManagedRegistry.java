@@ -20,15 +20,15 @@ public final class ManagedRegistry implements Registry<DependencyRegistry> {
 
     @Override
     public DependencyRegistry registry(Object... args) {
-        ClassValidator.validateArgs(args, new Class<?>[] {DependencyRegistry.class, ScanResult.class});
+        ClassValidator.validateArgumentTypes(args, new Class<?>[] {DependencyRegistry.class, ScanResult.class});
         DependencyRegistry di = ClassValidator.cast(args[0], DependencyRegistry.class);
         ScanResult sr = ClassValidator.cast(args[1], ScanResult.class);
         
         List<Class<?>> classes = sr.getClassesWithAnnotation(WiringConfig.class).loadClasses();
         Map<Class<?>, Object> manageds = new HashMap<>();
 
-        classes.forEach(cls -> 
-            Arrays.stream(cls.getMethods()).forEach(m -> {
+        classes.forEach(clazz -> 
+            Arrays.stream(clazz.getMethods()).forEach(m -> {
                 if(m.isAnnotationPresent(Managed.class)) {
                     try {
                         hasParameters(m);
@@ -50,19 +50,11 @@ public final class ManagedRegistry implements Registry<DependencyRegistry> {
     }
 
     private void hasParameters(Method m) {
-        if(m.getParameterTypes().length != 0) {
-            throw new DependencyInstantiationException(
-            "Cannot register injectable " + m + " depends on " + m.getParameterTypes()
-            );
-        }
+        if(m.getParameterTypes().length != 0) throw new DependencyInstantiationException("Cannot register injectable " + m + " depends on " + m.getParameterTypes());
     }
 
     private void isVoid(Method m) {
-        if(m.getReturnType() == void.class) {
-            throw new DependencyInstantiationException(
-            "Cannot register injectable, returns void " + m
-            );
-        }
+        if(m.getReturnType() == void.class) throw new DependencyInstantiationException("Cannot register injectable, returns void " + m);
     }
 
 }

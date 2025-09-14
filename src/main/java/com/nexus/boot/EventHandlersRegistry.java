@@ -20,7 +20,7 @@ public final class EventHandlersRegistry implements Registry<Void> {
 
     @Override
     public Void registry(Object... args) {
-        ClassValidator.validateArgs(args, new Class<?>[] {DependencyRegistry.class, ScanResult.class});
+        ClassValidator.validateArgumentTypes(args, new Class<?>[] {DependencyRegistry.class, ScanResult.class});
         DependencyRegistry di = ClassValidator.cast(args[0], DependencyRegistry.class);
         ScanResult sr = ClassValidator.cast(args[1], ScanResult.class);
         initRegistry(di, sr);
@@ -29,10 +29,10 @@ public final class EventHandlersRegistry implements Registry<Void> {
     
     public void initRegistry(DependencyRegistry di, ScanResult sr) {
         List<Class<?>> a = sr.getClassesImplementing(EventHandler.class).loadClasses();
-        a.forEach(cls -> {
-            EventHandler<?> handler = (EventHandler<?>) DependencyResolver.resolve(di, cls);
+        a.forEach(clazz -> {
+            EventHandler<?> handler = (EventHandler<?>) DependencyResolver.resolve(di, clazz);
             
-            Class<?> eventType = extractEventType(cls);
+            Class<?> eventType = extractEventType(clazz);
             addHandler(eventType, handler);
         });
     }
