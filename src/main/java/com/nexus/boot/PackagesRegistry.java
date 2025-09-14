@@ -13,9 +13,9 @@ public class PackagesRegistry implements Registry<Void>{
 
     @Override
     public Void registry(Object... args) {
-        ClassValidator.validateArgs(args, String.class);
+        ClassValidator.validateArgsWithContent(args, String.class, s -> !s.isEmpty());
         String[] pkgs = ClassValidator.castArray(args, new String[] {});
-        sr = new ClassGraph().acceptPackages(pkgs).scan();
+        sr = new ClassGraph().acceptPackages(pkgs).enableAllInfo().scan();
         return null;
     }
 

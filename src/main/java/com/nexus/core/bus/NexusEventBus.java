@@ -2,9 +2,9 @@ package com.nexus.core.bus;
 
 import com.nexus.boot.EventHandlersRegistry;
 import com.nexus.core.event.DomainEvent;
-import com.nexus.core.event.EventPublisher;
+import com.nexus.core.event.EventBus;
 
-public class NexusEventBus implements EventPublisher {
+public class NexusEventBus implements EventBus {
     private final EventHandlersRegistry eventRegistry;
 
     protected NexusEventBus(EventHandlersRegistry eventRegistry) {
