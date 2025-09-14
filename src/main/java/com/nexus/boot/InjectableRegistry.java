@@ -16,10 +16,10 @@ public final class InjectableRegistry implements Registry<DependencyRegistry> {
 
     @Override
     public DependencyRegistry registry(Object... args) {
-        ClassValidator.validateArgs(args, new Class<?>[] {DependencyRegistry.class, PackagesRegistry.class});
+        ClassValidator.validateArgs(args, new Class<?>[] {DependencyRegistry.class, ScanResult.class});
         DependencyRegistry di = ClassValidator.cast(args[0], DependencyRegistry.class);
-        PackagesRegistry pr = ClassValidator.cast(args[1], PackagesRegistry.class);
-        List<Class<?>> sorted = sortByLevel(pr.getScanResult());
+        ScanResult sr = ClassValidator.cast(args[1], ScanResult.class);
+        List<Class<?>> sorted = sortByLevel(sr);
         return registerAll(sorted, di);
     }
 

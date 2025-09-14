@@ -12,17 +12,19 @@ import com.nexus.core.annotations.WiringConfig;
 import com.nexus.exceptions.DependencyInstantiationException;
 import com.nexus.util.ClassValidator;
 
+import io.github.classgraph.ScanResult;
+
 public final class ManagedRegistry implements Registry<DependencyRegistry> {
 
     protected ManagedRegistry() {}
 
     @Override
     public DependencyRegistry registry(Object... args) {
-        ClassValidator.validateArgs(args, new Class<?>[] {DependencyRegistry.class, PackagesRegistry.class});
+        ClassValidator.validateArgs(args, new Class<?>[] {DependencyRegistry.class, ScanResult.class});
         DependencyRegistry di = ClassValidator.cast(args[0], DependencyRegistry.class);
-        PackagesRegistry pr = ClassValidator.cast(args[1], PackagesRegistry.class);
+        ScanResult sr = ClassValidator.cast(args[1], ScanResult.class);
         
-        List<Class<?>> classes = pr.getScanResult().getClassesWithAnnotation(WiringConfig.class).loadClasses();
+        List<Class<?>> classes = sr.getClassesWithAnnotation(WiringConfig.class).loadClasses();
         Map<Class<?>, Object> manageds = new HashMap<>();
 
         classes.forEach(cls -> 
