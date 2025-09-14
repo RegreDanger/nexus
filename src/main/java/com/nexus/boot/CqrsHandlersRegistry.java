@@ -11,7 +11,7 @@ import com.nexus.util.ClassValidator;
 
 import io.github.classgraph.ScanResult;
 
-public final class CqrsHandlersRegistry implements Registry<Void> {
+public final class CqrsHandlersRegistry implements Registry<CqrsHandlersRegistry> {
 
     private Map<Class<?>, Query<?, ?>> queries = new HashMap<>();
     private Map<Class<?>, Command<?, ?>> commands = new HashMap<>();
@@ -20,13 +20,13 @@ public final class CqrsHandlersRegistry implements Registry<Void> {
     protected CqrsHandlersRegistry() {}
 
     @Override
-    public Void registry(Object... args) {
+    public CqrsHandlersRegistry registry(Object... args) {
         ClassValidator.validateArgumentTypes(args, new Class<?>[] {DependencyRegistry.class, ScanResult.class});
         DependencyRegistry di = ClassValidator.cast(args[0], DependencyRegistry.class);
         ScanResult sr = ClassValidator.cast(args[1], ScanResult.class);
         initRegistry(di, sr);
         fillHandlers();
-        return null;
+        return this;
     }
 
     private void initRegistry(DependencyRegistry di, ScanResult sr) {

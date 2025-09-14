@@ -1,10 +1,10 @@
 package com.nexus.core.bus;
 
 import com.nexus.boot.CqrsHandlersRegistry;
-import com.nexus.core.cqrs.Bus;
+import com.nexus.core.cqrs.CqrsBus;
 import com.nexus.core.cqrs.Handler;
 
-public class NexusCqrsBus implements Bus {
+public class NexusCqrsBus implements CqrsBus {
     private final CqrsHandlersRegistry cqrsRegistry;
 
     protected NexusCqrsBus(CqrsHandlersRegistry cqrsRegistry) {

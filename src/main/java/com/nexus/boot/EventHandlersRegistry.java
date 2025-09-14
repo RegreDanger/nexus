@@ -14,17 +14,17 @@ import com.nexus.util.ClassValidator;
 
 import io.github.classgraph.ScanResult;
 
-public final class EventHandlersRegistry implements Registry<Void> {
+public final class EventHandlersRegistry implements Registry<EventHandlersRegistry> {
 
     private Map<Class<?>, List<EventHandler<?>>> handlersMap = new HashMap<>();
 
     @Override
-    public Void registry(Object... args) {
+    public EventHandlersRegistry registry(Object... args) {
         ClassValidator.validateArgumentTypes(args, new Class<?>[] {DependencyRegistry.class, ScanResult.class});
         DependencyRegistry di = ClassValidator.cast(args[0], DependencyRegistry.class);
         ScanResult sr = ClassValidator.cast(args[1], ScanResult.class);
         initRegistry(di, sr);
-        return null;
+        return this;
     }
     
     public void initRegistry(DependencyRegistry di, ScanResult sr) {
