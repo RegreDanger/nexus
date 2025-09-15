@@ -10,145 +10,154 @@ import com.nexus.boot.RegistryProvider;
 import com.nexus.core.bus.BusesProvider;
 import com.nexus.core.cqrs.CqrsBus;
 import com.nexus.core.event.EventBus;
+import com.nexus.exceptions.BusNotEnabledException;
 
 import io.github.classgraph.ScanResult;
 
 public class NexusContext {
-    private String[] pkgs;
-    
-    private PackagesRegistry pkgRegistry;
-    private DependencyRegistry di;
-    private ManagedRegistry managedRegistry;
-    private InjectableRegistry injectRegistry;
-    private CqrsHandlersRegistry cqrsHandlersRegistry;
-    private EventHandlersRegistry eventHandlersRegistry;
+	private String[] pkgs;
+	
+	private PackagesRegistry pkgRegistry;
+	private DependencyRegistry di;
+	private ManagedRegistry managedRegistry;
+	private InjectableRegistry injectRegistry;
+	private CqrsHandlersRegistry cqrsHandlersRegistry;
+	private EventHandlersRegistry eventHandlersRegistry;
 
-    private CqrsBus cqrsBus;
-    private EventBus eventBus;
+	private CqrsBus cqrsBus;
+	private EventBus eventBus;
 
-    private boolean hasCqrsBus;
-    private boolean hasEventBus;
+	private boolean hasCqrsBus;
+	private boolean hasEventBus;
 
-    private ScanResult sr;
+	private ScanResult sr;
 
-    private NexusContext(NexusContextBuilder builder) {
-        this.pkgs = builder.getPkgs();
-        this.cqrsBus = builder.getCqrsBus();
-        this.eventBus = builder.getEventBus();
-        this.hasCqrsBus = builder.hasCqrsBus();
-        this.hasEventBus = builder.hasEventBus();
-        setMainRegistry();
-        setBusesRegistry();
-        scanMainClasses();
-        buildCqrsBus();
-        buildEventBus();
-    }
+	private NexusContext(NexusContextBuilder builder) {
+		this.pkgs = builder.getPkgs();
+		this.cqrsBus = builder.getCqrsBus();
+		this.eventBus = builder.getEventBus();
+		this.hasCqrsBus = builder.hasCqrsBus();
+		this.hasEventBus = builder.hasEventBus();
+		setMainRegistry();
+		setBusesRegistry();
+		scanMainClasses();
+		buildCqrsBus();
+		buildEventBus();
+	}
 
-    private void setMainRegistry() {
-        this.pkgRegistry = RegistryProvider.getRegistry(PackagesRegistry.class);
-        this.di = RegistryProvider.getRegistry(DependencyRegistry.class);
-        this.managedRegistry = RegistryProvider.getRegistry(ManagedRegistry.class);
-        this.injectRegistry = RegistryProvider.getRegistry(InjectableRegistry.class);
-    }
+	private void setMainRegistry() {
+		this.pkgRegistry = RegistryProvider.getRegistry(PackagesRegistry.class);
+		this.di = RegistryProvider.getRegistry(DependencyRegistry.class);
+		this.managedRegistry = RegistryProvider.getRegistry(ManagedRegistry.class);
+		this.injectRegistry = RegistryProvider.getRegistry(InjectableRegistry.class);
+	}
 
-    private void setBusesRegistry() {
-        if (this.hasCqrsBus) this.cqrsHandlersRegistry = RegistryProvider.getRegistry(CqrsHandlersRegistry.class);
-        if (this.hasEventBus) this.eventHandlersRegistry = RegistryProvider.getRegistry(EventHandlersRegistry.class);
-    }
+	private void setBusesRegistry() {
+		if (this.hasCqrsBus) this.cqrsHandlersRegistry = RegistryProvider.getRegistry(CqrsHandlersRegistry.class);
+		if (this.hasEventBus) this.eventHandlersRegistry = RegistryProvider.getRegistry(EventHandlersRegistry.class);
+	}
 
 
-    private void scanMainClasses() {
-        this.sr = pkgRegistry.registry((Object[]) this.pkgs);
-        this.di = managedRegistry.registry(this.di, this.sr);
-        this.di = injectRegistry.registry(this.di, this.sr);
-    }
+	private void scanMainClasses() {
+		this.sr = pkgRegistry.registry((Object[]) this.pkgs);
+		this.di = managedRegistry.registry(this.di, this.sr);
+		this.di = injectRegistry.registry(this.di, this.sr);
+	}
 
-    private void buildCqrsBus() {
-        if(this.cqrsBus == null && this.hasCqrsBus) {
-            this.cqrsHandlersRegistry = cqrsHandlersRegistry.registry(this.di, this.sr);
-            this.cqrsBus = BusesProvider.getNexusCqrsBus(this.cqrsHandlersRegistry);
-        }
-    }
+	private void buildCqrsBus() {
+		if(this.cqrsBus == null && this.hasCqrsBus) {
+			this.cqrsHandlersRegistry = cqrsHandlersRegistry.registry(this.di, this.sr);
+			this.cqrsBus = BusesProvider.getNexusCqrsBus(this.cqrsHandlersRegistry);
+		}
+	}
 
-    private void buildEventBus() {
-        if(this.eventBus == null && this.hasEventBus) {
-            this.eventHandlersRegistry = eventHandlersRegistry.registry(this.di, this.sr);
-            this.eventBus = BusesProvider.getNexusEventBus(this.eventHandlersRegistry);
-        }
-    }
+	private void buildEventBus() {
+		if(this.eventBus == null && this.hasEventBus) {
+			this.eventHandlersRegistry = eventHandlersRegistry.registry(this.di, this.sr);
+			this.eventBus = BusesProvider.getNexusEventBus(this.eventHandlersRegistry);
+		}
+	}
 
-    public CqrsBus getCqrsBus() {
-        if(!this.hasCqrsBus) {
-            throw new UnsupportedOperationException("CQRS bus not enabled. Did you mean to call onlyEventBus() in the builder?");
-        }
-        return this.cqrsBus;
-    }
+	public CqrsBus getCqrsBus() {
+		if(!this.hasCqrsBus) {
+			throw new BusNotEnabledException(String.format(
+												"CQRS bus is not enabled in this NexusContext. " +
+												"To enable CQRS functionality, remove the onlyEventBus() call from your NexusContextBuilder, " +
+												"or use the default configuration that enables both buses."
+											));
+		}
+		return this.cqrsBus;
+	}
 
-    public EventBus getEventBus() {
-        if(!this.hasEventBus) {
-            throw new UnsupportedOperationException("Event bus not enabled in this context. Did you mean to call onlyCqrsBus() in the builder?");
-        }
-        return this.eventBus;
-    }
+	public EventBus getEventBus() {
+		if(!this.hasEventBus) {
+			throw new BusNotEnabledException(String.format(
+												"Event bus is not enabled in this NexusContext. " +
+												"To enable event functionality, remove the onlyCqrs() call from your NexusContextBuilder, " +
+												"or use the default configuration that enables both buses."
+											));
+		}
+		return this.eventBus;
+	}
 
-    public static class NexusContextBuilder {
-        private String[] pkgs;
-        private CqrsBus cqrsBus;
-        private EventBus eventBus;
-        private boolean hasCqrsBus = true;
-        private boolean hasEventBus = true;
+	public static class NexusContextBuilder {
+		private String[] pkgs;
+		private CqrsBus cqrsBus;
+		private EventBus eventBus;
+		private boolean hasCqrsBus = true;
+		private boolean hasEventBus = true;
 
-        public NexusContextBuilder packagesToScan(String... pkgs) {
-            this.pkgs = pkgs;
-            return this;
-        }
+		public NexusContextBuilder packagesToScan(String... pkgs) {
+			this.pkgs = pkgs;
+			return this;
+		}
 
-        public NexusContextBuilder withCqrsBus(CqrsBus cqrsBus) { 
-            this.cqrsBus = cqrsBus;
-            return this;
-        }
+		public NexusContextBuilder withCqrsBus(CqrsBus cqrsBus) { 
+			this.cqrsBus = cqrsBus;
+			return this;
+		}
 
-        public NexusContextBuilder withEventBus(EventBus eventBus) {
-            this.eventBus = eventBus;
-            return this;
-        }
+		public NexusContextBuilder withEventBus(EventBus eventBus) {
+			this.eventBus = eventBus;
+			return this;
+		}
 
-        public NexusContextBuilder onlyCqrs() {
-            this.hasCqrsBus = true;
-            this.hasEventBus = false;
-            return this;
-        }
+		public NexusContextBuilder onlyCqrs() {
+			this.hasCqrsBus = true;
+			this.hasEventBus = false;
+			return this;
+		}
 
-        public NexusContextBuilder onlyEventBus() {
-            this.hasCqrsBus = false;
-            this.hasEventBus = true;
-            return this;
-        }
+		public NexusContextBuilder onlyEventBus() {
+			this.hasCqrsBus = false;
+			this.hasEventBus = true;
+			return this;
+		}
 
-        private String[] getPkgs() {
-            return this.pkgs;
-        }
+		private String[] getPkgs() {
+			return this.pkgs;
+		}
 
-        private CqrsBus getCqrsBus() {
-            return this.cqrsBus;
-        }
+		private CqrsBus getCqrsBus() {
+			return this.cqrsBus;
+		}
 
-        private EventBus getEventBus() {
-            return this.eventBus;
-        }
+		private EventBus getEventBus() {
+			return this.eventBus;
+		}
 
-        private boolean hasCqrsBus() {
-            return this.hasCqrsBus;
-        }
+		private boolean hasCqrsBus() {
+			return this.hasCqrsBus;
+		}
 
-        private boolean hasEventBus() {
-            return this.hasEventBus;
-        }
+		private boolean hasEventBus() {
+			return this.hasEventBus;
+		}
 
-        public NexusContext build() {
-            return new NexusContext(this);
-        }
+		public NexusContext build() {
+			return new NexusContext(this);
+		}
 
-    }
+	}
 
 }

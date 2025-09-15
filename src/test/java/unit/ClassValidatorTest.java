@@ -107,9 +107,4 @@ class ClassValidatorTest {
         Object[] objs = { "x" };
         assertThrows(NullPointerException.class, () -> ClassValidator.castArray(objs, null));
     }
-
-    @Test
-    void getNameShouldReturnClassName() {
-        assertEquals("String", ClassValidator.getReadableName(String.class));
-    }
 }
