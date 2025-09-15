@@ -1,7 +1,7 @@
 package com.nexus.exceptions;
 
-public class DependencyNotFoundException extends RuntimeException {
-    public DependencyNotFoundException(String message) {
-        super(message);
-    }
+public class DependencyNotFoundException extends NexusException {
+	public DependencyNotFoundException(String message) {
+		super(message);
+	}
 }
