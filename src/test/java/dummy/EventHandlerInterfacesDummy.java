@@ -15,7 +15,7 @@ public class EventHandlerInterfacesDummy implements Serializable, EventHandler<E
 
     @Override
     public void on(EventDummy event) {
-        System.out.println("Event dummy!");
+        //Random operation
     }
     
     public InjectableFirstLevelDummy getFirstlevel() {

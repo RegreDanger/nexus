@@ -14,7 +14,7 @@ public class EventHandlerDummy implements EventHandler<EventDummy> {
 
     @Override
     public void on(EventDummy event) {
-        System.out.println("Event dummy!");
+        //Random operation
     }
     
     public InjectableFirstLevelDummy getFirstlevel() {

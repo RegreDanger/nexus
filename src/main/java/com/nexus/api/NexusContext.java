@@ -41,6 +41,7 @@ public class NexusContext {
 		setMainRegistry();
 		setBusesRegistry();
 		scanMainClasses();
+        RegistryProvider.updateRegistry(DependencyRegistry.class, this.di);
 		buildCqrsBus();
 		buildEventBus();
 	}

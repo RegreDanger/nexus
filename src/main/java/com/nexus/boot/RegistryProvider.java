@@ -32,4 +32,9 @@ public class RegistryProvider {
 			}
 		}));
 	}
+
+	public static synchronized <T extends Registry<?>> void updateRegistry(Class<T> clazz, T instance) {
+    	registries.put(clazz, instance);
+	}
+
 }
