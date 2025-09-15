@@ -1,4 +1,5 @@
-# Nexus Framework
+
+# Nexus
 
 ![Java](https://img.shields.io/badge/Java-21-orange.svg)
 ![Maven](https://img.shields.io/badge/Maven-3.8+-blue.svg)
@@ -9,7 +10,7 @@ A lightweight, flexible library for **building modular, event-driven apps using 
 
 ## 📖 Table of Contents
 
-- [Nexus Framework](#nexus-framework)
+- [Nexus](#nexus)
   - [📖 Table of Contents](#-table-of-contents)
   - [🏗️ Architecture Diagram](#️-architecture-diagram)
   - [🌟 Features](#-features)
@@ -390,8 +391,8 @@ and that it's in a package being scanned by NexusContext."
 ### Development Setup
 
 ```bash
-git clone https://github.com/your-username/nexus-framework.git
-cd nexus-framework
+git clone https://github.com/RegreDanger/nexus.git
+cd nexus
 mvn clean install
 mvn test
 ```
