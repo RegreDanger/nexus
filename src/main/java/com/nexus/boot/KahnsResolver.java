@@ -19,6 +19,7 @@ import com.nexus.core.annotations.Injectable;
 import com.nexus.core.annotations.NexusBean;
 import com.nexus.core.annotations.NexusComponent;
 import com.nexus.core.annotations.NexusConfiguration;
+import com.nexus.core.annotations.NexusEventSubscriber;
 import com.nexus.core.annotations.NexusInject;
 import com.nexus.core.annotations.NexusQualifier;
 
@@ -34,17 +35,21 @@ public class KahnsResolver {
     private final Map<Class<?>, Object> cachedInstances = new HashMap<>();
     private final Map<Class<?>, Map<String, Object>> cachedInterfaceInstances = new HashMap<>();
 
+    private final List<Class<?>> subscribersList = new ArrayList<>();
+
     public KahnsResolver(ScanResult sr) {
         List<Class<?>> toSolve = getAnnotatedClasses(sr, Injectable.class, NexusComponent.class,
-                NexusConfiguration.class);
+                NexusConfiguration.class, NexusEventSubscriber.class);
         toSolve.forEach(component -> {
+            map(getValidConstructor(component));
             if (component.isAnnotationPresent(NexusConfiguration.class)) {
-                map(getValidConstructor(component));
                 Stream.of(component.getMethods())
                         .filter(method -> method.isAnnotationPresent(NexusBean.class))
                         .forEach(this::map);
-            } else {
-                map(getValidConstructor(component));
+            }
+
+            if(component.isAnnotationPresent(NexusEventSubscriber.class)) {
+                subscribersList.add(component);
             }
         });
 
