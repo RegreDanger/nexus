@@ -18,7 +18,7 @@ public class BusesProvider {
 
 	public static NexusEventBus getNexusEventBus(EventHandlersRegistry registry) {
 		if(eventBus == null) {
-			eventBus = new NexusEventBus(registry);
+			eventBus = new NexusEventBus();
 		}
 		return eventBus;
 	}

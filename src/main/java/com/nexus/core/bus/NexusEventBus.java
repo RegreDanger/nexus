@@ -1,27 +1,44 @@
-package com.nexus.core.bus;
+	package com.nexus.core.bus;
 
-import com.nexus.boot.EventHandlersRegistry;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Consumer;
+
 import com.nexus.core.event.DomainEvent;
 import com.nexus.core.event.EventBus;
-import com.nexus.exceptions.BusInitializationException;
 
 public class NexusEventBus implements EventBus {
-	private final EventHandlersRegistry eventRegistry;
+	
+	private final Map<Class<?>, List<Consumer<Object>>> listeners = new HashMap<>();
 
-	protected NexusEventBus(EventHandlersRegistry eventRegistry) {
-		this.eventRegistry = eventRegistry;
+	public NexusEventBus() {}
+	
+	@SuppressWarnings("unchecked")
+	public <T> void register(Class<T> eventType, Consumer<T> handler) {
+		listeners.computeIfAbsent(eventType, k -> new ArrayList<>()).add((Consumer<Object>) handler);
 	}
-
+	
 	@Override
 	public <T extends DomainEvent> void publish(Class<T> eventType, T event) {
-		if(eventRegistry == null) {
-			throw new BusInitializationException(String.format(
-												"EventHandlersRegistry is not initialized. " +
-												"This indicates an internal error in NexusContext initialization. " +
-												"Try rebuilding the NexusContext or contact support if the problem persists."
-											));
+		List<Consumer<Object>> targets = listeners.get(eventType);
+		if (targets != null) {
+			for(Consumer<Object> t : targets) {
+				t.accept(event);
+			}
 		}
-		eventRegistry.getHandlers(eventType).forEach(handler -> handler.on(event));   
+	}
+	
+	public <T> void publish(T event) {
+		List<Consumer<Object>> targets = listeners.get(event.getClass());
+		if (targets != null) {
+			for(Consumer<Object> t : targets) {
+				t.accept(event);
+			}
+		}
 	}
 	
 }
+
+

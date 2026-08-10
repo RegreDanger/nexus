@@ -22,7 +22,9 @@ import com.nexus.core.annotations.NexusConfiguration;
 import com.nexus.core.annotations.NexusEventSubscriber;
 import com.nexus.core.annotations.NexusInject;
 import com.nexus.core.annotations.NexusQualifier;
+import com.nexus.core.event.EventHandler;
 
+import io.github.classgraph.ClassInfoList;
 import io.github.classgraph.ScanResult;
 
 public class KahnsResolver {
@@ -48,7 +50,7 @@ public class KahnsResolver {
                         .forEach(this::map);
             }
 
-            if(component.isAnnotationPresent(NexusEventSubscriber.class)) {
+            if(component.isAnnotationPresent(NexusEventSubscriber.class) || EventHandler.class.isAssignableFrom(component)) {
                 subscribersList.add(component);
             }
         });
@@ -66,7 +68,9 @@ public class KahnsResolver {
 
     @SafeVarargs
     private List<Class<?>> getAnnotatedClasses(ScanResult sr, Class<? extends Annotation>... annotations) {
-        return sr.getClassesWithAnyAnnotation(annotations).loadClasses();
+        ClassInfoList byAnnotation = sr.getClassesWithAnyAnnotation(annotations);
+        ClassInfoList byInterface = sr.getClassesImplementing(EventHandler.class);
+        return byAnnotation.union(byInterface).loadClasses();
     }
 
     private Constructor<?> getValidConstructor(Class<?> component) {
