@@ -64,6 +64,7 @@ public class KahnsResolver {
         }
         checkCyclicDependencies();
 
+        new EventHandlersPostProcessor(subscribersList, cachedInstances).process();
     }
 
     @SafeVarargs
