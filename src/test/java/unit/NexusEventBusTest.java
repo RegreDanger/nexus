@@ -22,8 +22,7 @@ import dummy.EventDummy;
 class NexusEventBusTest {
     @Test
     @SuppressWarnings("unchecked")
-    void registerAndConsumesEventByClass() {
-
+    void publishByClass_withRegisteredListener_invokesListener() {
         NexusEventBus eventBus = new NexusEventBus();
         Consumer<EventDummy> listener = mock(Consumer.class);
         EventDummy event = new EventDummy();
@@ -36,7 +35,7 @@ class NexusEventBusTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void registerAndConsumesEventByObject() {
+    void publishByObject_withRegisteredListener_invokesListener() {
         NexusEventBus eventBus = new NexusEventBus();
         Consumer<EventDummy> listener = mock(Consumer.class);
         EventDummy event = new EventDummy();
@@ -45,12 +44,11 @@ class NexusEventBusTest {
         eventBus.publish(event);
 
         verify(listener).accept(event);
-
     }
 
     @Test
     @SuppressWarnings("unchecked")
-    void registerMultipleListenersInSameTypeAndConsumesByClass() {
+    void publishByClass_withMultipleListeners_invokesInRegistrationOrder() {
         NexusEventBus eventBus = new NexusEventBus();
         Consumer<EventDummy> listener1 = mock(Consumer.class);
         Consumer<EventDummy> listener2 = mock(Consumer.class);
@@ -70,12 +68,11 @@ class NexusEventBusTest {
         inOrder.verify(listener2).accept(event);
         inOrder.verify(listener3).accept(event);
         inOrder.verify(listener4).accept(event);
-
     }
 
     @Test
     @SuppressWarnings("unchecked")
-    void registerMultipleListenersInSameTypeAndConsumesByObject() {
+    void publishByObject_withMultipleListeners_invokesInRegistrationOrder() {
         NexusEventBus eventBus = new NexusEventBus();
         Consumer<EventDummy> listener1 = mock(Consumer.class);
         Consumer<EventDummy> listener2 = mock(Consumer.class);
@@ -95,32 +92,31 @@ class NexusEventBusTest {
         inOrder.verify(listener2).accept(event);
         inOrder.verify(listener3).accept(event);
         inOrder.verify(listener4).accept(event);
-
     }
 
     @Test
     @SuppressWarnings("unchecked")
-    void differentEventTypeAreIsolatedByClass() {
+    void publishByClass_withDifferentEventType_doesNotInvokeListener() {
         NexusEventBus eventBus = new NexusEventBus();
         Consumer<EventDummy> listener = mock(Consumer.class);
         class OtherEventDummy implements DomainEvent {}
 
         eventBus.register(EventDummy.class, listener);
         eventBus.publish(OtherEventDummy.class, new OtherEventDummy());
-        
+
         verify(listener, never()).accept(any());
     }
 
     @Test
     @SuppressWarnings("unchecked")
-    void differentEventTypeAreIsolatedByObject() {
+    void publishByObject_withDifferentEventType_doesNotInvokeListener() {
         NexusEventBus eventBus = new NexusEventBus();
         Consumer<EventDummy> listener = mock(Consumer.class);
         class OtherEventDummy implements DomainEvent {}
 
         eventBus.register(EventDummy.class, listener);
         eventBus.publish(new OtherEventDummy());
-        
+
         verify(listener, never()).accept(any());
     }
 
@@ -140,14 +136,14 @@ class NexusEventBusTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void listenerThrowsExceptionAndCrashSiblingsByClass() {
+    void publishByClass_whenListenerThrows_propagatesAndSkipsRemainingListeners() {
         NexusEventBus eventBus = new NexusEventBus();
         Consumer<EventDummy> listener1 = mock(Consumer.class);
         Consumer<EventDummy> listener2 = mock(Consumer.class);
         EventDummy event = new EventDummy();
         doThrow(new RuntimeException("Should Crash")).when(listener1).accept(event);
         InOrder inOrder = inOrder(listener1, listener2);
-        
+
         eventBus.register(EventDummy.class, listener1);
         eventBus.register(EventDummy.class, listener2);
 
@@ -158,14 +154,14 @@ class NexusEventBusTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void listenerThrowsExceptionAndCrashSiblingsByObject() {
+    void publishByObject_whenListenerThrows_propagatesAndSkipsRemainingListeners() {
         NexusEventBus eventBus = new NexusEventBus();
         Consumer<EventDummy> listener1 = mock(Consumer.class);
         Consumer<EventDummy> listener2 = mock(Consumer.class);
         EventDummy event = new EventDummy();
         doThrow(new RuntimeException("Should Crash")).when(listener1).accept(event);
         InOrder inOrder = inOrder(listener1, listener2);
-        
+
         eventBus.register(EventDummy.class, listener1);
         eventBus.register(EventDummy.class, listener2);
 
