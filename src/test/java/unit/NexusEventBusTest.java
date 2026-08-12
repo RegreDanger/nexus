@@ -173,4 +173,29 @@ class NexusEventBusTest {
         inOrder.verify(listener1).accept(event);
         inOrder.verify(listener2, never()).accept(any());
     }
+
+    @Test
+    void publishByClass_withNullEvent_throwsNullPointerException() {
+        NexusEventBus eventBus = new NexusEventBus();
+        assertThrows(NullPointerException.class, () -> eventBus.publish(EventDummy.class, null));
+    }
+
+    @Test
+    void publishByClass_withNullEventType_throwsNullPointerException() {
+        NexusEventBus eventBus = new NexusEventBus();
+        EventDummy event = new EventDummy();
+        assertThrows(NullPointerException.class, () -> eventBus.publish(null, event));
+    }
+
+    @Test
+    void publishByClass_withNullEventAndEventType_throwsNullPointerException() {
+        NexusEventBus eventBus = new NexusEventBus();
+        assertThrows(NullPointerException.class, () -> eventBus.publish(null, null));
+    }
+
+    @Test
+    void publishByObject_withNullEvent_throwsNullPointerException() {
+        NexusEventBus eventBus = new NexusEventBus();
+        assertThrows(NullPointerException.class, () -> eventBus.publish(null));
+    }
 }

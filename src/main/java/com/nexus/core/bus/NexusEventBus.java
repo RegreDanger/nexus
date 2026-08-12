@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 import com.nexus.core.event.DomainEvent;
@@ -22,6 +23,8 @@ public class NexusEventBus implements EventBus {
 	
 	@Override
 	public <T extends DomainEvent> void publish(Class<T> eventType, T event) {
+		Objects.requireNonNull(event, "Cannot publish a null event");
+		Objects.requireNonNull(eventType, "Cannot publish with a null event type");
 		List<Consumer<Object>> targets = listeners.get(eventType);
 		if (targets != null) {
 			for(Consumer<Object> t : targets) {
@@ -31,6 +34,7 @@ public class NexusEventBus implements EventBus {
 	}
 	
 	public <T> void publish(T event) {
+		Objects.requireNonNull(event, "Cannot publish a null event");
 		List<Consumer<Object>> targets = listeners.get(event.getClass());
 		if (targets != null) {
 			for(Consumer<Object> t : targets) {
