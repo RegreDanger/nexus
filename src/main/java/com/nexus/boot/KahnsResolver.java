@@ -19,9 +19,12 @@ import com.nexus.core.annotations.Injectable;
 import com.nexus.core.annotations.NexusBean;
 import com.nexus.core.annotations.NexusComponent;
 import com.nexus.core.annotations.NexusConfiguration;
+import com.nexus.core.annotations.NexusEventSubscriber;
 import com.nexus.core.annotations.NexusInject;
 import com.nexus.core.annotations.NexusQualifier;
+import com.nexus.core.event.EventHandler;
 
+import io.github.classgraph.ClassInfoList;
 import io.github.classgraph.ScanResult;
 
 public class KahnsResolver {
@@ -34,17 +37,21 @@ public class KahnsResolver {
     private final Map<Class<?>, Object> cachedInstances = new HashMap<>();
     private final Map<Class<?>, Map<String, Object>> cachedInterfaceInstances = new HashMap<>();
 
+    private final List<Class<?>> subscribersList = new ArrayList<>();
+
     public KahnsResolver(ScanResult sr) {
         List<Class<?>> toSolve = getAnnotatedClasses(sr, Injectable.class, NexusComponent.class,
-                NexusConfiguration.class);
+                NexusConfiguration.class, NexusEventSubscriber.class);
         toSolve.forEach(component -> {
+            map(getValidConstructor(component));
             if (component.isAnnotationPresent(NexusConfiguration.class)) {
-                map(getValidConstructor(component));
                 Stream.of(component.getMethods())
                         .filter(method -> method.isAnnotationPresent(NexusBean.class))
                         .forEach(this::map);
-            } else {
-                map(getValidConstructor(component));
+            }
+
+            if(component.isAnnotationPresent(NexusEventSubscriber.class) || EventHandler.class.isAssignableFrom(component)) {
+                subscribersList.add(component);
             }
         });
 
@@ -57,11 +64,14 @@ public class KahnsResolver {
         }
         checkCyclicDependencies();
 
+        new EventHandlersPostProcessor(subscribersList, cachedInstances).process();
     }
 
     @SafeVarargs
     private List<Class<?>> getAnnotatedClasses(ScanResult sr, Class<? extends Annotation>... annotations) {
-        return sr.getClassesWithAnyAnnotation(annotations).loadClasses();
+        ClassInfoList byAnnotation = sr.getClassesWithAnyAnnotation(annotations);
+        ClassInfoList byInterface = sr.getClassesImplementing(EventHandler.class);
+        return byAnnotation.union(byInterface).loadClasses();
     }
 
     private Constructor<?> getValidConstructor(Class<?> component) {
