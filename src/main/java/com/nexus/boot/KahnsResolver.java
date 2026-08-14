@@ -22,6 +22,8 @@ import com.nexus.core.annotations.NexusConfiguration;
 import com.nexus.core.annotations.NexusEventSubscriber;
 import com.nexus.core.annotations.NexusInject;
 import com.nexus.core.annotations.NexusQualifier;
+import com.nexus.core.cqrs.Command;
+import com.nexus.core.cqrs.Query;
 import com.nexus.core.event.EventHandler;
 
 import io.github.classgraph.ClassInfoList;
@@ -38,6 +40,8 @@ public class KahnsResolver {
     private final Map<Class<?>, Map<String, Object>> cachedInterfaceInstances = new HashMap<>();
 
     private final List<Class<?>> subscribersList = new ArrayList<>();
+    private final List<Class<?>> commandList = new ArrayList<>();
+    private final List<Class<?>> queryList = new ArrayList<>();
 
     public KahnsResolver(ScanResult sr) {
         List<Class<?>> toSolve = getAnnotatedClasses(sr, Injectable.class, NexusComponent.class,
@@ -71,7 +75,9 @@ public class KahnsResolver {
     private List<Class<?>> getAnnotatedClasses(ScanResult sr, Class<? extends Annotation>... annotations) {
         ClassInfoList byAnnotation = sr.getClassesWithAnyAnnotation(annotations);
         ClassInfoList byInterface = sr.getClassesImplementing(EventHandler.class);
-        return byAnnotation.union(byInterface).loadClasses();
+        ClassInfoList byInterfaceCommand = sr.getClassesImplementing(Command.class);
+        ClassInfoList byInterfaceQuery = sr.getClassesImplementing(Query.class);
+        return byAnnotation.union(byInterface, byInterfaceCommand, byInterfaceQuery).loadClasses();
     }
 
     private Constructor<?> getValidConstructor(Class<?> component) {
